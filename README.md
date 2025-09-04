@@ -14,65 +14,37 @@ A powerful, user-friendly Schema Builder UI that allows non-technical users to c
 ### 🏗️ Schema Management
 - **Multiple Schema Support**: Create, edit, and manage multiple schemas in a clean list interface
 - **Schema Naming**: Give each schema a descriptive name for easy identification
+- **UUID-based IDs**: Each schema gets a globally unique identifier for reliable tracking
 - **Creation Tracking**: Automatic timestamps and field counting for each schema
+- **JSON Export**: View and copy all schemas together in a structured JSON format
 
 ### 🎯 Data Types & Validation
 - **String Validation**: min_length, max_length, pattern (regex), required, has_symbols, has_numbers, has_uppercase, has_lowercase
 - **Number Validation**: min, max, integer_only, positive_only, required
 - **Boolean Validation**: required, must_be_true
-- **Array Validation**: min_items, max_items, unique_items, required, plus nested item schemas
+- **Array Validation**: min_items, max_items, unique_items, required, plus nested item schemas with multiple fields
 - **Object Validation**: required fields, plus nested property schemas
 
-### 🔄 Infinite Nesting
+### 🔄 Infinite Nesting & Advanced Array Support
 - Objects can contain arrays and other objects
-- Arrays can contain objects and other arrays
+- Arrays can contain objects with multiple fields and other arrays
+- **Enhanced Array Items**: Array items of type "object" can have multiple properties, not just single fields
 - Unlimited depth for complex data structures
-- Visual tree structure for easy navigation
+- Visual tree structure with collapsible sections for easy navigation
 
 ### 🎨 User Experience
-- **Intuitive Interface**: Clean, modern design with collapsible sections
+- **Intuitive Interface**: Clean, modern design with collapsible sections and dropdown navigation
+- **Collapsible Fields**: Minimize complex nested structures to focus on what you need
 - **Real-time Preview**: See your schema structure as you build
-- **Copy to Clipboard**: Export schemas as formatted JSON
+- **Copy to Clipboard**: Export individual schemas or all schemas as formatted JSON
+- **Built-in Documentation**: Comprehensive help system explaining all features and concepts
 - **Responsive Design**: Works on desktop and mobile devices
 
-## Schema Output Format
-
-The Schema Builder generates structured schemas in this format:
-
-```json
-[
-  {
-    "display_name": "User Profile Schema",
-    "schema": {
-      "display_name": "User",
-      "data_type": "object",
-      "validation_rules": [
-        {
-          "rule": "required",
-          "enabled": true
-        }
-      ],
-      "properties": [
-        {
-          "display_name": "Email",
-          "data_type": "string",
-          "validation_rules": [
-            {
-              "rule": "required",
-              "enabled": true
-            },
-            {
-              "rule": "pattern",
-              "enabled": true,
-              "value": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"
-            }
-          ]
-        }
-      ]
-    }
-  }
-]
-```
+### 📚 Documentation & Help
+- **Interactive Documentation**: Built-in help system accessible from any view
+- **Comprehensive Guides**: Detailed explanations of schemas, data types, and validation rules
+- **Best Practices**: Guidelines for building effective schemas
+- **Examples**: Real-world schema examples for common use cases
 
 ## Getting Started
 
@@ -82,7 +54,7 @@ The Schema Builder generates structured schemas in this format:
 
 ### Installation
 
-1. Clone the repository:
+1. Clone the repository: 
 ```bash
 git clone https://github.com/your-username/schema-builder-ui.git
 cd schema-builder-ui
@@ -133,20 +105,44 @@ yarn dev
 - **UI Components**: shadcn/ui
 - **Icons**: Lucide React
 - **Language**: TypeScript
+- **Architecture**: Modular component structure with separated concerns
 
 ## Project Structure
 
 ```
 ├── app/
-│   ├── layout.tsx          # Root layout with theme provider
-│   ├── page.tsx            # Main page with schema list manager
-│   └── globals.css         # Global styles and Tailwind config
+│   ├── layout.tsx              # Root layout with theme provider and Suspense boundary
+│   ├── page.tsx                # Main page with schema list manager
+│   └── globals.css             # Global styles and Tailwind config
 ├── components/
-│   ├── schema-list-manager.tsx  # Main schema management interface
-│   ├── schema-builder.tsx       # Individual schema builder component
-│   └── ui/                      # shadcn/ui components
+│   ├── schema-list-manager.tsx # Main schema management interface
+│   ├── schema-builder.tsx      # Individual schema builder component
+│   ├── documentation/
+│   │   └── schema-documentation.tsx  # Comprehensive help system
+│   └── ui/                     # shadcn/ui components
+├── lib/
+│   ├── types/
+│   │   └── schema.ts           # TypeScript interfaces and types
+│   ├── constants/
+│   │   └── validation-rules.ts # Validation rule definitions
+│   └── utils/
+│       └── schema-utils.ts     # Utility functions for schema operations
 └── README.md
 ```
+
+## Architecture Highlights
+
+### Modular Design
+- **Separated Types**: All TypeScript interfaces in dedicated files
+- **Utility Functions**: Reusable functions with comprehensive JSDoc documentation
+- **Constants**: Centralized validation rule definitions
+- **Component Separation**: Documentation and core functionality in separate components
+
+### Code Quality
+- **TypeScript**: Full type safety with comprehensive interfaces
+- **JSDoc Documentation**: Detailed function and component documentation
+- **Best Practices**: Following React/Next.js conventions and patterns
+- **Maintainable Structure**: Clear separation of concerns and modular architecture
 
 ## Deployment
 
