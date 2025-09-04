@@ -8,9 +8,10 @@
  * - Switch between list view, individual schema editing, and JSON view
  * - Export all schemas as JSON
  * - Access documentation
+ * - Persist data in sessionStorage to prevent data loss on refresh
  */
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,6 +22,8 @@ import { SchemaBuilder } from "./schema-builder"
 import { SchemaDocumentation } from "./documentation/schema-documentation"
 import type { Schema } from "@/lib/types/schema"
 import { generateUUID, copyToClipboard } from "@/lib/utils/schema-utils"
+
+const STORAGE_KEY = "schema-builder-data"
 
 /**
  * Main schema management component with list view, editing, and JSON export
@@ -33,9 +36,35 @@ export function SchemaListManager() {
   const [showJsonView, setShowJsonView] = useState(false)
   const [showDocumentation, setShowDocumentation] = useState(false)
 
-  /**
-   * Creates a new schema with the provided name
-   */
+  useEffect(() => {
+    const loadSchemasFromStorage = () => {
+      try {
+        const storedData = sessionStorage.getItem(STORAGE_KEY)
+        if (storedData) {
+          const parsedData = JSON.parse(storedData)
+          const schemasWithDates = parsedData.map((schema: any) => ({
+            ...schema,
+            createdAt: new Date(schema.createdAt),
+            updatedAt: new Date(schema.updatedAt),
+          }))
+          setSchemas(schemasWithDates)
+        }
+      } catch (error) {
+        console.error("Failed to load schemas from sessionStorage:", error)
+      }
+    }
+
+    loadSchemasFromStorage()
+  }, [])
+
+  const saveToStorage = (updatedSchemas: Schema[]) => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSchemas))
+    } catch (error) {
+      console.error("Failed to save schemas to sessionStorage:", error)
+    }
+  }
+
   const createSchema = () => {
     if (!newSchemaName.trim()) return
 
@@ -47,42 +76,38 @@ export function SchemaListManager() {
       updatedAt: new Date(),
     }
 
-    setSchemas([...schemas, newSchema])
+    const updatedSchemas = [...schemas, newSchema]
+    setSchemas(updatedSchemas)
+    saveToStorage(updatedSchemas)
     setSelectedSchema(newSchema)
     setNewSchemaName("")
     setIsCreating(false)
   }
 
-  /**
-   * Deletes a schema by ID and clears selection if it was selected
-   */
   const deleteSchema = (schemaId: string) => {
-    setSchemas(schemas.filter((s) => s.id !== schemaId))
+    const updatedSchemas = schemas.filter((s) => s.id !== schemaId)
+    setSchemas(updatedSchemas)
+    saveToStorage(updatedSchemas)
     if (selectedSchema?.id === schemaId) {
       setSelectedSchema(null)
     }
   }
 
-  /**
-   * Updates a schema's fields and modification timestamp
-   */
   const updateSchema = (schemaId: string, fields: any[]) => {
-    setSchemas(schemas.map((s) => (s.id === schemaId ? { ...s, fields, updatedAt: new Date() } : s)))
+    const updatedSchemas = schemas.map((s) => (s.id === schemaId ? { ...s, fields, updatedAt: new Date() } : s))
+    setSchemas(updatedSchemas)
+    saveToStorage(updatedSchemas)
   }
 
-  /**
-   * Renames a schema and updates both the list and selected schema
-   */
   const renameSchema = (schemaId: string, newName: string) => {
-    setSchemas(schemas.map((s) => (s.id === schemaId ? { ...s, name: newName, updatedAt: new Date() } : s)))
+    const updatedSchemas = schemas.map((s) => (s.id === schemaId ? { ...s, name: newName, updatedAt: new Date() } : s))
+    setSchemas(updatedSchemas)
+    saveToStorage(updatedSchemas)
     if (selectedSchema?.id === schemaId) {
       setSelectedSchema((prev) => (prev ? { ...prev, name: newName, updatedAt: new Date() } : null))
     }
   }
 
-  /**
-   * Generates complete JSON output for all schemas
-   */
   const generateCompleteJson = () => {
     return schemas.map((schema) => ({
       name: schema.name,
@@ -90,15 +115,11 @@ export function SchemaListManager() {
     }))
   }
 
-  /**
-   * Copies all schemas JSON to clipboard
-   */
   const copyJsonToClipboard = () => {
     const jsonOutput = JSON.stringify(generateCompleteJson(), null, 2)
     copyToClipboard(jsonOutput)
   }
 
-  // Individual schema editing view
   if (selectedSchema) {
     const currentSchema = selectedSchema
 
@@ -143,7 +164,6 @@ export function SchemaListManager() {
     )
   }
 
-  // JSON view for all schemas
   if (showJsonView) {
     const completeJson = generateCompleteJson()
 
@@ -189,7 +209,6 @@ export function SchemaListManager() {
     )
   }
 
-  // Main schema list view
   return (
     <div className="space-y-6">
       <Card>
