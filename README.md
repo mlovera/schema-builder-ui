@@ -39,7 +39,7 @@ A powerful, user-friendly Schema Builder UI that allows non-technical users to c
 
 The Schema Builder generates structured schemas in this format:
 
-\`\`\`json
+```json
 [
   {
     "display_name": "User Profile Schema",
@@ -72,7 +72,7 @@ The Schema Builder generates structured schemas in this format:
     }
   }
 ]
-\`\`\`
+```
 
 ## Getting Started
 
