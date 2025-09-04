@@ -39,7 +39,7 @@ A powerful, user-friendly Schema Builder UI that allows non-technical users to c
 
 The Schema Builder generates structured schemas in this format:
 
-```json
+\`\`\`json
 [
   {
     "display_name": "User Profile Schema",
@@ -72,7 +72,7 @@ The Schema Builder generates structured schemas in this format:
     }
   }
 ]
-```
+\`\`\`
 
 ## Getting Started
 
@@ -83,24 +83,24 @@ The Schema Builder generates structured schemas in this format:
 ### Installation
 
 1. Clone the repository:
-```bash
+\`\`\`bash
 git clone https://github.com/your-username/schema-builder-ui.git
 cd schema-builder-ui
-```
+\`\`\`
 
 2. Install dependencies:
-```bash
+\`\`\`bash
 npm install
 # or
 yarn install
-```
+\`\`\`
 
 3. Run the development server:
-```bash
+\`\`\`bash
 npm run dev
 # or
 yarn dev
-```
+\`\`\`
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
@@ -136,7 +136,7 @@ yarn dev
 
 ## Project Structure
 
-```
+\`\`\`
 ├── app/
 │   ├── layout.tsx          # Root layout with theme provider
 │   ├── page.tsx            # Main page with schema list manager
@@ -146,7 +146,7 @@ yarn dev
 │   ├── schema-builder.tsx       # Individual schema builder component
 │   └── ui/                      # shadcn/ui components
 └── README.md
-```
+\`\`\`
 
 ## Deployment
 
