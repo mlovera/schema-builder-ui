@@ -244,7 +244,17 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
               <div key={ruleConfig.name} className="flex items-center gap-3 p-3 border rounded-lg">
                 <Switch
                   checked={rule.enabled}
-                  onCheckedChange={(enabled) => updateValidationRule(path, rule.name, enabled, rule.value)}
+                  onCheckedChange={(enabled) => {
+                    let defaultValue = rule.value
+                    if (enabled && ruleConfig.type === "boolean") {
+                      defaultValue = true
+                    } else if (enabled && ruleConfig.type === "number") {
+                      defaultValue = defaultValue || 0
+                    } else if (enabled && ruleConfig.type === "text") {
+                      defaultValue = defaultValue || ""
+                    }
+                    updateValidationRule(path, rule.name, enabled, defaultValue)
+                  }}
                 />
                 <Label className="flex-1 text-sm">{ruleConfig.label}</Label>
                 {rule.enabled && ruleConfig.type !== "boolean" && (
