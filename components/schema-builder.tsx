@@ -1,5 +1,12 @@
 "use client"
 
+/**
+ * Schema Builder Component
+ *
+ * Interactive component for building individual schemas with validation rules.
+ * Supports nested objects, arrays, and all data types with their specific validation options.
+ */
+
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,64 +19,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Trash2, Plus, ChevronDown, ChevronRight, Copy } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
-type DataType = "string" | "number" | "boolean" | "array" | "object"
+import type { DataType, SchemaField, SchemaBuilderProps } from "@/lib/types/schema"
+import { VALIDATION_RULES_BY_TYPE } from "@/lib/constants/validation-rules"
+import { createSchemaField, updateNestedField, cleanSchemaForExport, copyToClipboard } from "@/lib/utils/schema-utils"
 
-interface ValidationRule {
-  name: string
-  enabled: boolean
-  value?: string | number | boolean
-}
-
-interface SchemaField {
-  id: string
-  display_name: string
-  data_type: DataType
-  validation_rules: ValidationRule[]
-  properties?: SchemaField[] // for objects
-  item_schema?: SchemaField // for arrays
-  selectedTypeToAdd?: DataType
-  isExpanded?: boolean
-}
-
-const VALIDATION_RULES_BY_TYPE: Record<
-  DataType,
-  Array<{ name: string; type: "text" | "number" | "boolean"; label: string; placeholder?: string }>
-> = {
-  string: [
-    { name: "required", type: "boolean", label: "Required" },
-    { name: "min_length", type: "number", label: "Minimum Length", placeholder: "0" },
-    { name: "max_length", type: "number", label: "Maximum Length", placeholder: "100" },
-    { name: "pattern", type: "text", label: "Regex Pattern", placeholder: "^[a-zA-Z]+$" },
-    { name: "has_symbols", type: "boolean", label: "Must Have Symbols" },
-    { name: "has_numbers", type: "boolean", label: "Must Have Numbers" },
-    { name: "has_uppercase", type: "boolean", label: "Must Have Uppercase" },
-    { name: "has_lowercase", type: "boolean", label: "Must Have Lowercase" },
-  ],
-  number: [
-    { name: "required", type: "boolean", label: "Required" },
-    { name: "min", type: "number", label: "Minimum Value", placeholder: "0" },
-    { name: "max", type: "number", label: "Maximum Value", placeholder: "100" },
-    { name: "integer_only", type: "boolean", label: "Integer Only" },
-    { name: "positive_only", type: "boolean", label: "Positive Only" },
-  ],
-  boolean: [
-    { name: "required", type: "boolean", label: "Required" },
-    { name: "must_be_true", type: "boolean", label: "Must Be True" },
-  ],
-  array: [
-    { name: "required", type: "boolean", label: "Required" },
-    { name: "min_items", type: "number", label: "Minimum Items", placeholder: "0" },
-    { name: "max_items", type: "number", label: "Maximum Items", placeholder: "10" },
-    { name: "unique_items", type: "boolean", label: "Unique Items Only" },
-  ],
-  object: [{ name: "required", type: "boolean", label: "Required" }],
-}
-
-interface SchemaBuilderProps {
-  initialSchema?: any[]
-  onSchemaChange?: (schema: any[]) => void
-}
-
+/**
+ * Main schema builder component for creating and editing individual schemas
+ */
 export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuilderProps) {
   const [schema, setSchema] = useState<SchemaField[]>([])
   const [selectedTypeToAdd, setSelectedTypeToAdd] = useState<DataType>("string")
@@ -78,35 +34,19 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
     if (initialSchema.length > 0 || schema.length === 0) {
       setSchema(initialSchema)
     }
-  }, [initialSchema]) // Use length instead of the full array to prevent unnecessary updates
+  }, [initialSchema])
 
   useEffect(() => {
     if (onSchemaChange) {
       onSchemaChange(schema)
     }
-  }, [schema]) // Only depend on schema, not onSchemaChange
+  }, [schema])
 
-  const createField = (type: DataType): SchemaField => {
-    const validationRules = VALIDATION_RULES_BY_TYPE[type].map((rule) => ({
-      name: rule.name,
-      enabled: false,
-      value: rule.type === "boolean" ? false : rule.type === "number" ? 0 : "",
-    }))
-
-    return {
-      id: Math.random().toString(36).substr(2, 9),
-      display_name: "",
-      data_type: type,
-      validation_rules: validationRules,
-      properties: type === "object" ? [] : undefined,
-      item_schema: type === "array" ? undefined : undefined,
-      selectedTypeToAdd: type === "object" || type === "array" ? "string" : undefined,
-      isExpanded: true,
-    }
-  }
-
+  /**
+   * Adds a new field to the schema or nested within a parent field
+   */
   const addField = (parentPath?: string) => {
-    const newField = createField(selectedTypeToAdd)
+    const newField = createSchemaField(selectedTypeToAdd)
 
     if (!parentPath) {
       setSchema([...schema, newField])
@@ -125,41 +65,16 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
     }
   }
 
-  const updateNestedField = (
-    fields: SchemaField[],
-    path: string,
-    updater: (field: SchemaField) => SchemaField,
-  ): SchemaField[] => {
-    const pathParts = path.split(".")
-    const fieldId = pathParts[0]
-
-    return fields.map((field) => {
-      if (field.id === fieldId) {
-        if (pathParts.length === 1) {
-          return updater(field)
-        } else {
-          const remainingPath = pathParts.slice(1).join(".")
-          if (field.properties) {
-            return {
-              ...field,
-              properties: updateNestedField(field.properties, remainingPath, updater),
-            }
-          } else if (field.item_schema) {
-            return {
-              ...field,
-              item_schema: updater(field.item_schema),
-            }
-          }
-        }
-      }
-      return field
-    })
-  }
-
+  /**
+   * Updates a field's properties using dot-notation path
+   */
   const updateField = (path: string, updates: Partial<SchemaField>) => {
     setSchema((prev) => updateNestedField(prev, path, (field) => ({ ...field, ...updates })))
   }
 
+  /**
+   * Updates a specific validation rule for a field
+   */
   const updateValidationRule = (
     path: string,
     ruleName: string,
@@ -176,6 +91,9 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
     )
   }
 
+  /**
+   * Removes a field from the schema
+   */
   const removeField = (path: string) => {
     const pathParts = path.split(".")
     if (pathParts.length === 1) {
@@ -192,8 +110,11 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
     }
   }
 
+  /**
+   * Sets the item schema for an array field
+   */
   const setArrayItemSchema = (path: string, itemType: DataType) => {
-    const newItemSchema = createField(itemType)
+    const newItemSchema = createSchemaField(itemType)
     setSchema((prev) =>
       updateNestedField(prev, path, (field) => ({
         ...field,
@@ -202,33 +123,17 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
     )
   }
 
+  /**
+   * Copies the current schema to clipboard as JSON
+   */
   const copySchema = () => {
-    const cleanSchema = (fields: SchemaField[]): any[] => {
-      return fields.map((field) => {
-        const cleaned: any = {
-          display_name: field.display_name,
-          data_type: field.data_type,
-          validation_rules: field.validation_rules
-            .filter((rule) => rule.enabled)
-            .map((rule) => ({
-              [rule.name]: rule.value,
-            })),
-        }
-
-        if (field.data_type === "object" && field.properties) {
-          cleaned.properties = cleanSchema(field.properties)
-        } else if (field.data_type === "array" && field.item_schema) {
-          cleaned.item_schema = cleanSchema([field.item_schema])[0]
-        }
-
-        return cleaned
-      })
-    }
-
-    const schemaString = JSON.stringify(cleanSchema(schema), null, 2)
-    navigator.clipboard.writeText(schemaString)
+    const schemaString = JSON.stringify(cleanSchemaForExport(schema), null, 2)
+    copyToClipboard(schemaString)
   }
 
+  /**
+   * Renders validation rules UI for a specific field
+   */
   const renderValidationRules = (field: SchemaField, path: string) => {
     const availableRules = VALIDATION_RULES_BY_TYPE[field.data_type]
 
@@ -285,6 +190,9 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
     )
   }
 
+  /**
+   * Recursively renders a schema field with all its properties and nested fields
+   */
   const renderField = (field: SchemaField, path: string, depth = 0) => {
     const isContainer = field.data_type === "object" || field.data_type === "array"
 
@@ -316,7 +224,7 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
                 <Select
                   value={field.data_type}
                   onValueChange={(value: DataType) => {
-                    const newField = createField(value)
+                    const newField = createSchemaField(value)
                     updateField(path, {
                       data_type: value,
                       validation_rules: newField.validation_rules,
@@ -408,7 +316,7 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
                     <Button
                       size="sm"
                       onClick={() => {
-                        const newField = createField(field.selectedTypeToAdd || "string")
+                        const newField = createSchemaField(field.selectedTypeToAdd || "string")
                         updateField(path, {
                           properties: [...(field.properties || []), newField],
                         })
@@ -477,25 +385,7 @@ export function SchemaBuilder({ initialSchema = [], onSchemaChange }: SchemaBuil
           </CardHeader>
           <CardContent>
             <Textarea
-              value={JSON.stringify(
-                schema.map((field) => ({
-                  display_name: field.display_name,
-                  data_type: field.data_type,
-                  validation_rules: field.validation_rules
-                    .filter((rule) => rule.enabled)
-                    .reduce(
-                      (acc, rule) => {
-                        acc[rule.name] = rule.value
-                        return acc
-                      },
-                      {} as Record<string, any>,
-                    ),
-                  ...(field.data_type === "object" && field.properties ? { properties: field.properties } : {}),
-                  ...(field.data_type === "array" && field.item_schema ? { item_schema: field.item_schema } : {}),
-                })),
-                null,
-                2,
-              )}
+              value={JSON.stringify(cleanSchemaForExport(schema), null, 2)}
               readOnly
               className="min-h-[200px] font-mono text-sm"
             />
