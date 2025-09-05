@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trash2, Plus, Edit, ArrowLeft, Copy, Eye, HelpCircle } from "lucide-react"
+import { Trash2, Plus, Edit, ArrowLeft, Copy, Eye, HelpCircle, Github } from "lucide-react"
 import { SchemaBuilder } from "./schema-builder"
 import { SchemaDocumentation } from "./documentation/schema-documentation"
 import type { Schema } from "@/lib/types/schema"
@@ -125,6 +125,20 @@ export function SchemaListManager() {
 
     return (
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <Button variant="ghost" size="sm" asChild>
+            <a
+              href="https://github.com/mlovera/schema-builder-ui"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <Github className="h-4 w-4" />
+              View on GitHub
+            </a>
+          </Button>
+        </div>
+
         <Card>
           <CardHeader>
             <div className="flex items-center gap-3">
@@ -169,6 +183,20 @@ export function SchemaListManager() {
 
     return (
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <Button variant="ghost" size="sm" asChild>
+            <a
+              href="https://github.com/mlovera/schema-builder-ui"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <Github className="h-4 w-4" />
+              View on GitHub
+            </a>
+          </Button>
+        </div>
+
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -211,6 +239,20 @@ export function SchemaListManager() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button variant="ghost" size="sm" asChild>
+          <a
+            href="https://github.com/mlovera/schema-builder-ui"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2"
+          >
+            <Github className="h-4 w-4" />
+            View on GitHub
+          </a>
+        </Button>
+      </div>
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
